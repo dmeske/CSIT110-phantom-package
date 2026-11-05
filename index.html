@@ -1,0 +1,277 @@
+<title>Phantom Package</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: a package-registry inspection desk. Terminal panel with the AI's install command, a row of paid "lookups", and an install / don't-install verdict. */
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --ink: #1a1a2e; --muted: #4a4a55; --line: #8b95a3; --accent: #c8101a; --accent-ink: #ffffff; --good: #1b6b3a; --bad: #a3212b; --focus: #1a1a2e; --red: #e9171f; --gold: #fed184; --band: #1a1a2e; --band-ink: #ffffff; --band-soft: #cbd5e1; --band-gold: #fed184;
+  --term: #1a1a2e; --term-ink: #f2f3f6; --term-dim: #fed184; --caution: #A87400; --chip: #fbf4e3;
+  --sans: "IBM Plex Sans", "Segoe UI", Arial, sans-serif; --mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11111c; --panel: #1c1c2c; --ink: #eef0f4; --muted: #cbd5e1; --line: #8b95a3; --accent: #fed184; --accent-ink: #1a1a2e; --good: #8fe0a9; --bad: #ff9ea6; --focus: #fed184; --red: #e9171f; --gold: #fed184; --band: #0a0a14; --band-ink: #ffffff; --band-soft: #cbd5e1; --band-gold: #fed184; color-scheme: dark;
+  --term: #07070f; --term-ink: #f2f3f6; --term-dim: #fed184; --caution: #fed184; --chip: #2a2a3d; } }
+:root[data-theme="dark"] {
+  --bg: #11111c; --panel: #1c1c2c; --ink: #eef0f4; --muted: #cbd5e1; --line: #8b95a3; --accent: #fed184; --accent-ink: #1a1a2e; --good: #8fe0a9; --bad: #ff9ea6; --focus: #fed184; --red: #e9171f; --gold: #fed184; --band: #0a0a14; --band-ink: #ffffff; --band-soft: #cbd5e1; --band-gold: #fed184; color-scheme: dark;
+  --term: #07070f; --term-ink: #f2f3f6; --term-dim: #fed184; --caution: #fed184; --chip: #2a2a3d; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 40px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 18px; }
+h1, h2, h3 { margin: 0; line-height: 1.2; text-wrap: balance; }
+h1 { font-size: 2.1rem; font-family: var(--mono); font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.25rem; }
+p { margin: 0; }
+.eyebrow { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.term { background: var(--term); color: var(--term-ink); font-family: var(--mono); border-radius: 6px; padding: 14px; overflow-wrap: anywhere; display: grid; gap: 6px; }
+.term .who { color: var(--term-dim); font-size: 0.85rem; }
+.term code { font-family: var(--mono); font-size: 1rem; }
+.term code::before { content: "$ "; color: var(--term-dim); }
+.top { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: baseline; }
+.worth { white-space: nowrap; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; background: var(--chip); border: 1px solid var(--line); }
+button { font: inherit; font-weight: 600; min-height: 48px; min-width: 48px; padding: 8px 16px; border-radius: 6px; border: 2px solid var(--accent); background: var(--panel); color: var(--accent); cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-ink); }
+button.primary:disabled { background: transparent; }
+button:disabled { border-color: var(--line); color: var(--muted); cursor: not-allowed; }
+button:focus-visible, [tabindex="-1"]:focus, a:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.clue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.clue-grid button { text-align: left; font-size: 0.95rem; }
+.clue-grid button .k { font-family: var(--mono); font-size: 0.8rem; color: inherit; opacity: 0.85; display: block; }
+ul.clues { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+ul.clues li { border-left: 4px solid var(--caution); background: var(--chip); padding: 8px 12px; border-radius: 0 6px 6px 0; }
+ul.clues li strong { font-family: var(--mono); font-weight: 600; }
+.verdicts { display: flex; flex-wrap: wrap; gap: 10px; }
+.ok { color: var(--good); font-weight: 700; }
+.no { color: var(--bad); font-weight: 700; }
+.feedback { border-left: 6px solid var(--accent); }
+.note { color: var(--muted); font-size: 0.95rem; }
+.live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+caption { text-align: left; padding-bottom: 6px; }
+.empty { color: var(--muted); font-style: italic; }
+@media (prefers-reduced-motion: no-preference) { ul.clues li { animation: slide 0.18s ease-out; } @keyframes slide { from { transform: translateX(-6px); } to { transform: none; } } }
+
+/* Palomar header band: navy with a red top rule and gold eyebrow */
+main > header:is(.panel, .sheet) { background: var(--band); background-image: none; color: var(--band-ink); border: 0; border-top: 6px solid var(--red); border-radius: 6px; }
+main > header:is(.panel, .sheet) h1 { color: var(--band-ink); }
+main > header:is(.panel, .sheet) .tag, main > header:is(.panel, .sheet) .eyebrow, main > header:is(.panel, .sheet) .label { color: var(--band-gold); }
+main > header:is(.panel, .sheet) .note, main > header:is(.panel, .sheet) p { color: var(--band-soft); }
+main > header:is(.panel, .sheet) h1 + p, main > header:is(.panel, .sheet) .titleblock + h1 + p { color: var(--band-ink); }
+main > header:is(.panel, .sheet) .titleblock { border-bottom-color: var(--red); }
+main > header:is(.panel, .sheet) strong { color: var(--band-gold); }
+.feedback, #feedback { border-left: 6px solid var(--gold); }
+</style>
+
+<main>
+  <header class="panel">
+    <p class="eyebrow">Palomar College · CSIT 110 · Module 12</p>
+    <h1>Phantom Package</h1>
+    <p>An AI coding assistant tells you to install a package. Some suggestions are real and safe. Some don't exist, some are brand-new copies of names AI tools invent (slopsquatting), and some are look-alikes of popular packages. Look things up, then decide.</p>
+    <p class="note">Each round is worth 4 points. Every lookup costs 1 point (a correct call always earns at least 1). Installing a bad package costs 2 points. Rejecting a safe one earns 0. 8 rounds, 32 points possible. <strong>Every package and registry detail here is invented for practice.</strong> No timer.</p>
+    <p class="note">Keyboard: when focus isn't on a button, press 1&ndash;4 for lookups, I to install, or D for don't install.</p>
+  </header>
+
+  <section class="panel" id="start-panel" aria-labelledby="start-h">
+    <h2 id="start-h">Open the inspection desk</h2>
+    <p id="best-line" class="eyebrow">Best score on this device: none yet</p>
+    <div><button class="primary" id="start-btn" type="button">Start inspecting</button></div>
+  </section>
+
+  <section class="panel" id="game" hidden aria-labelledby="round-h">
+    <div class="top"><p class="eyebrow" id="progress">Round 1 of 8</p><p class="worth" id="worth">Worth 4 points</p></div>
+    <h2 id="round-h" tabindex="-1"></h2>
+    <div class="term" aria-label="AI assistant message">
+      <span class="who" id="lang"></span>
+      <span id="ai-text"></span>
+      <code id="cmd"></code>
+    </div>
+    <h3>Lookups</h3>
+    <div class="clue-grid" id="clue-btns"></div>
+    <ul class="clues" id="clue-list" aria-label="What your lookups found"><li class="empty" id="no-clues">No lookups yet.</li></ul>
+    <h3>Your call</h3>
+    <div class="verdicts">
+      <button class="primary" type="button" id="install-btn">Install it</button>
+      <button type="button" id="reject-btn">Don't install: find a verified alternative</button>
+    </div>
+  </section>
+
+  <section class="panel feedback" id="feedback" hidden aria-labelledby="fb-h">
+    <h3 id="fb-h" tabindex="-1"></h3>
+    <p id="fb-points" class="eyebrow"></p>
+    <p id="fb-kind"></p>
+    <p id="fb-why"></p>
+    <ul class="clues" id="fb-clues" aria-label="Everything the registry shows"></ul>
+    <div><button class="primary" type="button" id="next-btn">Next package</button></div>
+  </section>
+
+  <section class="panel" id="results" hidden aria-labelledby="res-h">
+    <h2 id="res-h" tabindex="-1">Inspection report</h2>
+    <p id="res-total" class="eyebrow"></p>
+    <p id="res-best" class="eyebrow"></p>
+    <p id="res-lookups"></p>
+    <div style="overflow-x:auto" tabindex="0" role="region" aria-label="Results by package type"><table id="res-table"><caption class="eyebrow">Results by package type</caption><thead><tr><th scope="col">Package type</th><th scope="col">Correct calls</th><th scope="col">Points</th></tr></thead><tbody></tbody></table></div>
+    <p id="res-tip"></p>
+    <div><button class="primary" type="button" id="again-btn">Inspect a new batch</button></div>
+  </section>
+  <div class="live" aria-live="polite" id="live"></div>
+</main>
+
+<script>
+const CLUES = [
+  { key: "reg", label: "Search the registry" },
+  { key: "age", label: "Check first-publish date" },
+  { key: "dl", label: "Check weekly downloads" },
+  { key: "src", label: "Check source code and maintainers" },
+];
+const TYPES = { legit: "Real and established", phantom: "Doesn't exist", slop: "Brand-new copy of an invented name", typo: "Look-alike name" };
+const BANK = [
+  { type: "legit", lang: "Python", task: "Make charts from your budget spreadsheet", ai: "To draw the chart, install this plotting library:", pkg: "pip install plotmint",
+    reg: "Found: plotmint, a plotting library.", age: "First published March 2017; updated last month.", dl: "About 2.4 million downloads a week.", src: "Links to a public code repository with 140 contributors and a documentation site.",
+    why: "Years of history, heavy use, and public source code with many contributors are signs of an established package. It's safe to install." },
+  { type: "legit", lang: "JavaScript", task: "Format dates on your club's event page", ai: "Use this date-formatting package:", pkg: "npm install datewise",
+    reg: "Found: datewise, date formatting tools.", age: "First published 2015; updated two weeks ago.", dl: "About 9 million downloads a week.", src: "Public repository, 300 contributors, a security policy page.",
+    why: "A long history, huge download count, and an active public project all point to a real, maintained package." },
+  { type: "legit", lang: "Python", task: "Read the text out of PDF files", ai: "Install this PDF reader:", pkg: "pip install pagecraft",
+    reg: "Found: pagecraft, read and edit PDF files.", age: "First published 2012; updated this year.", dl: "About 5 million downloads a week.", src: "Public repository with 210 contributors and full documentation.",
+    why: "Established for more than a decade with broad use and public code. This is the kind of package you want." },
+  { type: "phantom", lang: "Python", task: "Clean up messy CSV columns", ai: "This package handles it in one line:", pkg: "pip install csvmagic-cleaner-ai",
+    reg: "No package with this name exists.", age: "No data: package not found.", dl: "No data: package not found.", src: "No data: package not found.",
+    why: "The AI invented this name. Nothing exists yet, but an attacker could register it tomorrow. Ask the AI for a well-known library and verify that one." },
+  { type: "phantom", lang: "JavaScript", task: "Add a login screen to your app", ai: "Install this to handle logins:", pkg: "npm install auth-simple-tokens",
+    reg: "No package with this name exists.", age: "No data: package not found.", dl: "No data: package not found.", src: "No data: package not found.",
+    why: "A made-up package for security-sensitive work like logins is doubly risky. Use a well-known, verified library and follow your organization's rules." },
+  { type: "phantom", lang: "Python", task: "Resize photos for a website", ai: "Install this image tool:", pkg: "pip install imgresize-turbo-lite",
+    reg: "No package with this name exists.", age: "No data: package not found.", dl: "No data: package not found.", src: "No data: package not found.",
+    why: "The name sounds plausible, which is exactly why invented names get past people. One registry search shows it isn't real." },
+  { type: "slop", lang: "Python", task: "Pull tables out of PDF reports", ai: "This package extracts tables automatically:", pkg: "pip install pdftable-extract-pro",
+    reg: "Found: pdftable-extract-pro. Description: “extract tables.”", age: "First published 3 days ago.", dl: "41 downloads this week.", src: "No source repository listed. One maintainer, account created this week.",
+    why: "It exists, but it appeared days ago with no history and no public code. That matches slopsquatting: someone registered a name AI tools tend to invent. Don't install it." },
+  { type: "slop", lang: "JavaScript", task: "Email form results to yourself", ai: "Install this to send the email:", pkg: "npm install formmail-quick-send",
+    reg: "Found: formmail-quick-send. Runs a setup script during install.", age: "First published 6 days ago.", dl: "18 downloads this week.", src: "No source repository listed. Maintainer has no other packages.",
+    why: "A brand-new package that runs its own script during install, with no public code, can do anything on your computer. Treat it as malware." },
+  { type: "slop", lang: "Python", task: "Auto-format Excel reports", ai: "Use this to format the workbook:", pkg: "pip install excel-autoformat-ai",
+    reg: "Found: excel-autoformat-ai. No description.", age: "First published yesterday.", dl: "9 downloads this week.", src: "No source repository listed.",
+    why: "Published yesterday with no description, no code, and almost no users. Registering an AI-invented name is cheap for attackers. Skip it." },
+  { type: "typo", lang: "Python", task: "Make charts from your budget spreadsheet", ai: "Install the plotting library:", pkg: "pip install plotmnt",
+    reg: "Found: plotmnt. Description copied from plotmint. Did you mean plotmint?", age: "First published 2 weeks ago.", dl: "300 downloads this week.", src: "Links to plotmint's repository, but the uploaded code doesn't match it.",
+    why: "One letter is missing from the popular package plotmint. Look-alike names (typosquatting) catch both people and AI tools. Install the real plotmint after checking it." },
+  { type: "typo", lang: "JavaScript", task: "Format dates on your club's event page", ai: "Add this date package:", pkg: "npm install datewse",
+    reg: "Found: datewse. Did you mean datewise?", age: "First published 10 days ago.", dl: "520 downloads this week.", src: "No repository of its own; copies datewise's README.",
+    why: "“datewse” is a near-miss of the popular datewise. Copying another project's description is a common trick. Use the real package." },
+  { type: "typo", lang: "Python", task: "Read the text out of PDF files", ai: "Install this PDF reader:", pkg: "pip install pagecrafts",
+    reg: "Found: pagecrafts. Did you mean pagecraft?", age: "First published 1 month ago.", dl: "1,100 downloads this week.", src: "Repository link goes to a page that no longer exists.",
+    why: "An extra “s” on a trusted name, a short history, and a dead source link. Check spelling against the official package page before installing." },
+];
+const TIPS = {
+  legit: "Look for years of history, real use, and public source code before you trust a package, then install with confidence.",
+  phantom: "Search the official registry first. If the package isn't there, the AI made it up.",
+  slop: "Check the first-publish date and source code. A days-old package with no code is a red flag.",
+  typo: "Compare the spelling letter by letter with the popular package's official page.",
+};
+const KEY = "phantom-package-best";
+const $ = (id) => document.getElementById(id);
+let round = [], idx = 0, cur = null, log = [];
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function getBest() { try { const v = parseInt(localStorage.getItem(KEY), 10); return isNaN(v) ? null : v; } catch (e) { return null; } }
+function setBest(v) { try { localStorage.setItem(KEY, String(v)); } catch (e) {} }
+function announce(t) { $("live").textContent = ""; setTimeout(() => { $("live").textContent = t; }, 30); }
+function showBest() { const b = getBest(); $("best-line").textContent = "Best score on this device: " + (b === null ? "none yet" : b + " of 32"); }
+const worth = () => Math.max(1, 4 - cur.used.size);
+
+function start() {
+  round = shuffle(Object.keys(TYPES).flatMap((t) => shuffle(BANK.filter((b) => b.type === t)).slice(0, 2)));
+  idx = 0; log = [];
+  $("start-panel").hidden = true; $("results").hidden = true;
+  load();
+}
+function load() {
+  const it = round[idx]; cur = { it, used: new Set(), done: false };
+  $("progress").textContent = `Round ${idx + 1} of ${round.length}`;
+  $("round-h").textContent = it.task;
+  $("lang").textContent = `AI coding assistant · ${it.lang}`;
+  $("ai-text").textContent = it.ai;
+  $("cmd").textContent = it.pkg;
+  const box = $("clue-btns"); box.innerHTML = "";
+  CLUES.forEach((c, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.id = "clue-" + c.key;
+    b.innerHTML = `<span class="k">Lookup ${i + 1} · costs 1 point</span>`;
+    b.appendChild(document.createTextNode(c.label));
+    b.addEventListener("click", () => reveal(c.key));
+    box.appendChild(b);
+  });
+  $("clue-list").innerHTML = '<li class="empty" id="no-clues">No lookups yet.</li>';
+  updateWorth();
+  $("install-btn").disabled = false; $("reject-btn").disabled = false;
+  $("feedback").hidden = true; $("game").hidden = false;
+  $("round-h").focus();
+}
+function updateWorth() { $("worth").textContent = `Worth ${worth()} point${worth() > 1 ? "s" : ""}`; }
+function clueText(key) { return cur.it[key]; }
+function reveal(key) {
+  if (cur.done || cur.used.has(key)) return;
+  cur.used.add(key);
+  const nc = $("no-clues"); if (nc) nc.remove();
+  const c = CLUES.find((x) => x.key === key);
+  const li = document.createElement("li"); const s = document.createElement("strong"); s.textContent = c.label + ": ";
+  li.append(s, document.createTextNode(clueText(key))); $("clue-list").appendChild(li);
+  const b = $("clue-" + key); b.disabled = true; b.setAttribute("aria-label", c.label + ", already checked");
+  updateWorth();
+  announce(`${c.label}: ${clueText(key)} Round now worth ${worth()}.`);
+  const nextBtn = [...$("clue-btns").querySelectorAll("button")].find((x) => !x.disabled);
+  (nextBtn || $("install-btn")).focus();
+}
+// Scoring: correct call earns max(1, 4 - lookups); installing a bad package -2; rejecting a safe one 0
+function scoreCall(type, install, used) { const safe = type === "legit"; const right = install === safe; return { right, pts: right ? Math.max(1, 4 - used) : (install ? -2 : 0) }; }
+function decide(install) {
+  if (cur.done) return; cur.done = true;
+  const it = cur.it; const r = scoreCall(it.type, install, cur.used.size);
+  log.push({ type: it.type, right: r.right, pts: r.pts, used: cur.used.size });
+  $("install-btn").disabled = true; $("reject-btn").disabled = true;
+  $("fb-h").textContent = r.right ? (install ? "✓ Right call: safe to install" : "✓ Right call: you didn't install it") : (install ? "✗ You installed a bad package" : "✗ That one was safe");
+  $("fb-points").textContent = `${r.pts > 0 ? "+" : ""}${r.pts} point${Math.abs(r.pts) === 1 ? "" : "s"} · ${cur.used.size} lookup${cur.used.size === 1 ? "" : "s"} used`;
+  $("fb-kind").innerHTML = ""; const k = document.createElement("strong"); k.textContent = "Package type: "; $("fb-kind").append(k, document.createTextNode(TYPES[it.type]));
+  $("fb-why").textContent = it.why;
+  const ul = $("fb-clues"); ul.innerHTML = "";
+  CLUES.forEach((c) => { const li = document.createElement("li"); const s = document.createElement("strong"); s.textContent = c.label + ": "; li.append(s, document.createTextNode(it[c.key])); ul.appendChild(li); });
+  $("next-btn").textContent = idx === round.length - 1 ? "See inspection report" : "Next package";
+  $("game").hidden = true; $("feedback").hidden = false; $("fb-h").focus();
+  announce($("fb-h").textContent + ". " + $("fb-points").textContent);
+}
+function next() { idx++; if (idx < round.length) load(); else finish(); }
+function finish() {
+  $("feedback").hidden = true; $("results").hidden = false;
+  const total = log.reduce((a, r) => a + r.pts, 0);
+  const prev = getBest(); const best = Math.max(prev === null ? total : prev, total); setBest(best);
+  $("res-total").textContent = `Your score: ${total} of 32`;
+  $("res-best").textContent = `Best on this device: ${best} of 32`;
+  const lookups = log.reduce((a, r) => a + r.used, 0);
+  const badInstalls = log.filter((r) => r.pts === -2).length;
+  $("res-lookups").textContent = `You used ${lookups} lookups across 8 packages and installed ${badInstalls} bad package${badInstalls === 1 ? "" : "s"}.` + (badInstalls ? " In real life, one bad install can be enough to take over a computer." : "");
+  const tb = $("res-table").querySelector("tbody"); tb.innerHTML = "";
+  const stats = Object.keys(TYPES).map((t) => { const rs = log.filter((r) => r.type === t); return { t, right: rs.filter((r) => r.right).length, n: rs.length, pts: rs.reduce((a, r) => a + r.pts, 0) }; });
+  stats.forEach((s) => { const tr = document.createElement("tr"); [TYPES[s.t], `${s.right === s.n ? "✓" : "✗"} ${s.right} of ${s.n}`, String(s.pts)].forEach((v, i) => { const c = document.createElement(i === 0 ? "th" : "td"); if (i === 0) c.scope = "row"; c.textContent = v; tr.appendChild(c); }); tb.appendChild(tr); });
+  const weak = stats.slice().sort((a, b) => (a.right - b.right) || (a.pts - b.pts))[0];
+  $("res-tip").innerHTML = ""; const b = document.createElement("strong");
+  if (weak.right === weak.n) { b.textContent = "Every call was right. "; $("res-tip").append(b, document.createTextNode("Now try to keep that record with fewer lookups.")); }
+  else { b.textContent = `Practice next: ${TYPES[weak.t]}. `; $("res-tip").append(b, document.createTextNode(TIPS[weak.t])); }
+  $("res-h").focus(); announce(`Inspection report. ${total} of 32 points.`); showBest();
+}
+document.addEventListener("keydown", (e) => {
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  if (["BUTTON", "INPUT", "SELECT", "TEXTAREA", "A"].includes(tag) || e.ctrlKey || e.metaKey || e.altKey) return;
+  if ($("game").hidden || !cur || cur.done) return;
+  const n = parseInt(e.key, 10);
+  if (n >= 1 && n <= 4) { reveal(CLUES[n - 1].key); e.preventDefault(); }
+  else if (e.key.toLowerCase() === "i") { decide(true); e.preventDefault(); }
+  else if (e.key.toLowerCase() === "d") { decide(false); e.preventDefault(); }
+});
+$("start-btn").addEventListener("click", start);
+$("install-btn").addEventListener("click", () => decide(true));
+$("reject-btn").addEventListener("click", () => decide(false));
+$("next-btn").addEventListener("click", next);
+$("again-btn").addEventListener("click", start);
+showBest();
+</script>
